@@ -12,6 +12,11 @@ const navItems: NavItem[] = [
     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M21 20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9.48907C3 9.18048 3.14247 8.88917 3.38606 8.69972L11.3861 2.47749C11.7472 2.19663 12.2528 2.19663 12.6139 2.47749L20.6139 8.69972C20.8575 8.88917 21 9.18048 21 9.48907V20ZM19 19V9.97815L12 4.53371L5 9.97815V19H19Z"></path></svg>`,
   },
   {
+    label: "Skills",
+    href: "#skills",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z"></path></svg>`,
+  },
+  {
     label: "Experience",
     href: "#experience",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M7 5V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V5H21C21.5523 5 22 5.44772 22 6V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V6C2 5.44772 2.44772 5 3 5H7ZM9 4V5H15V4H9ZM4 13V19H20V13H4ZM4 11H20V7H4V11ZM11 14H13V16H11V14Z"></path></svg>`,
@@ -20,11 +25,6 @@ const navItems: NavItem[] = [
     label: "Projects",
     href: "#projects",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M4 5V19H20V7H11.5858L9.58579 5H4ZM12.4142 5H21C21.5523 5 22 5.44772 22 6V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H10.4142L12.4142 5Z"></path></svg>`,
-  },
-  {
-    label: "Skills",
-    href: "#skills",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z"></path></svg>`,
   },
   {
     label: "Contact",
@@ -170,31 +170,45 @@ const navItems: NavItem[] = [
   });
 
   document.addEventListener("DOMContentLoaded", () => {
-    const sections = document.querySelectorAll("section[id]");
     const navLinks = document.querySelectorAll("nav a[href^='#']");
-    const observerOptions = { threshold: 0.6 };
+    const observed = new Set<Element>();
+    navLinks.forEach((link) => {
+      const id = link.getAttribute("href")?.substring(1);
+      if (id) {
+        const el = document.getElementById(id);
+        if (el) observed.add(el);
+      }
+    });
+    const observerOptions = { threshold: 0.3 };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       // Skip observer updates shortly after a nav click so the clicked
       // item (e.g. #skills, nested inside #home) keeps its active class.
       if (Date.now() - lastNavClick < 1200) return;
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          navLinks.forEach((link) => link.classList.remove("active"));
-          const id = entry.target.getAttribute("id");
-          const activeLink = document.querySelector(`nav a[href="#${id}"]`);
-          if (activeLink) {
-            activeLink.classList.add("active");
-          }
-        }
-      });
+      const intersecting = entries.filter((e) => e.isIntersecting);
+      if (intersecting.length === 0) return;
+      // When multiple sections intersect (e.g. #home and its child #skills),
+      // prefer the most specific (deepest) one — order-independent.
+      const deepest = intersecting.filter(
+        (entry) =>
+          !intersecting.some(
+            (other) => other !== entry && other.target.contains(entry.target)
+          )
+      );
+      const target = (deepest[0] || intersecting[0]).target;
+      navLinks.forEach((link) => link.classList.remove("active"));
+      const id = target.getAttribute("id");
+      const activeLink = document.querySelector(`nav a[href="#${id}"]`);
+      if (activeLink) {
+        activeLink.classList.add("active");
+      }
     };
 
     const observer = new IntersectionObserver(
       observerCallback,
       observerOptions
     );
-    sections.forEach((section) => observer.observe(section));
+    observed.forEach((el) => observer.observe(el));
   });
 </script>
 

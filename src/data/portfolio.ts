@@ -15,7 +15,7 @@ export const hero = {
 export const experience = [
   {
     role: "QA Automation Engineer / SDET",
-    company: "Omnix & MyDx Platforms",
+    company: "Infomedia Nusantara",
     period: "2025 — Present",
     points: [
       "Designed a Page Object Model-based Playwright framework in TypeScript, cutting regression execution from 3 days manual to under 4 hours automated.",
@@ -25,7 +25,7 @@ export const experience = [
   },
   {
     role: "Software Quality Assurance Engineer",
-    company: "PT Mitramas Infosys Global",
+    company: "Mitramas Infosys Global",
     period: "2024 — 2025",
     points: [
       "Drafted and executed comprehensive test plans for web and mobile releases, covering functional, regression, and smoke cycles.",
