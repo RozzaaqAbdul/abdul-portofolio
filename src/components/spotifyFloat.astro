@@ -1,0 +1,85 @@
+---
+const playlistId = "6MIetufosiiGRNtQTGX71C";
+---
+
+<div
+  id="spotify-float"
+  class="fixed z-[90] right-4 bottom-20 md:bottom-6 md:right-6 w-56 md:w-64"
+>
+  <div
+    id="spotify-card"
+    class="rounded-xl overflow-hidden shadow-2xl border border-[var(--white-icon-tr)] bg-[#181818]"
+  >
+    <button
+      id="spotify-header"
+      aria-label="Minimize music player"
+      class="flex items-center justify-between w-full px-3 py-2 text-xs text-[var(--white-icon)] bg-[#241a38] hover:bg-[#2f2149] transition-colors cursor-pointer"
+    >
+      <span class="flex items-center gap-2">
+        <span class="text-[var(--sec)]">♫</span>
+        <span>Now Playing</span>
+      </span>
+      <svg
+        id="spotify-chevron"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        class="w-4 h-4 transition-transform duration-300"
+      >
+        <path
+          d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"></path>
+      </svg>
+    </button>
+    <iframe
+      style="border:0; display:block;"
+      src={`https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`}
+      width="100%"
+      height="152"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      title="Spotify playlist player"></iframe>
+  </div>
+</div>
+
+<button
+  id="spotify-bubble"
+  aria-label="Open music player"
+  class="fixed z-[90] right-4 bottom-20 md:bottom-6 md:right-6 size-11 rounded-full bg-[var(--component-bg)] border border-[var(--white-icon-tr)] text-[var(--white-icon)] hover:text-white hover:scale-110 transition-all shadow-xl flex justify-center items-center opacity-0 scale-50 pointer-events-none"
+>
+♫
+</button>
+
+<style>
+  #spotify-float {
+    transition:
+      transform 0.35s ease,
+      opacity 0.35s ease;
+  }
+  #spotify-float.minimized {
+    transform: translateY(140px);
+    opacity: 0;
+    pointer-events: none;
+  }
+  #spotify-bubble.show {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+  #spotify-float.minimized #spotify-chevron {
+    transform: rotate(180deg);
+  }
+</style>
+
+<script>
+  const float = document.getElementById("spotify-float");
+  const header = document.getElementById("spotify-header");
+  const bubble = document.getElementById("spotify-bubble");
+
+  const setMinimized = (min: boolean) => {
+    float?.classList.toggle("minimized", min);
+    bubble?.classList.toggle("show", min);
+  };
+
+  header?.addEventListener("click", () => setMinimized(true));
+  bubble?.addEventListener("click", () => setMinimized(false));
+</script>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
-import { db } from "../firebase";
+
+const NAMESPACE = "rozzaaqab";
+const KEY = "likes";
+const BASE = "https://abacus.jasoncameron.dev";
 
 const LikeButton = () => {
   const [likes, setLikes] = useState(0);
@@ -17,41 +19,38 @@ const LikeButton = () => {
       setIsLiked(storedIsLiked === "true");
     }
 
-    // Listen for realtime updates from Firestore
-    const likeDocRef = doc(db, "likes", "counter");
-    const unsubscribe = onSnapshot(likeDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const currentLikes = docSnap.data().likes;
-        // Only update if the server value is different (prevents overwrite during optimistic update)
-        setLikes((prev) => {
-          const newLikes = Math.max(0, currentLikes);
-          return newLikes;
-        });
-      }
-    });
-
-    return () => unsubscribe();
+    // Fetch current count without incrementing
+    fetch(`${BASE}/get/${NAMESPACE}/${KEY}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((data) => {
+        if (typeof data.value === "number") {
+          setLikes(Math.max(0, data.value));
+        }
+      })
+      .catch((err) => console.error("Failed to load likes:", err));
   }, []);
 
   const handleLike = async () => {
     if (isProcessing || isLiked) return;
 
-    // Optimistic Update
     const previousLikes = likes;
+    // Optimistic update
     setLikes((prev) => prev + 1);
     setIsLiked(true);
     setIsAnimating(true);
     localStorage.setItem("websiteIsLiked", "true");
-
-    // Reset animation after it finishes
     setTimeout(() => setIsAnimating(false), 600);
 
     try {
       setIsProcessing(true);
-      const likeDocRef = doc(db, "likes", "counter");
-      await updateDoc(likeDocRef, {
-        likes: increment(1),
-      });
+      // /hit increments by 1 and returns the new value
+      const res = await fetch(`${BASE}/hit/${NAMESPACE}/${KEY}`);
+      if (!res.ok) throw new Error(`Abacus responded ${res.status}`);
+      const data = await res.json();
+      if (typeof data.value === "number") {
+        // Sync with server value in case of drift
+        setLikes(Math.max(0, data.value));
+      }
     } catch (error) {
       console.error("Error updating likes:", error);
       // Rollback on error
@@ -85,7 +84,7 @@ const LikeButton = () => {
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className={`w-6 h-6 transition-all duration-300 ease-in-out 
+          className={`w-6 h-6 transition-all duration-300 ease-in-out
             ${isLiked ? "text-[var(--sec)] scale-110" : "text-[var(--white-icon)] group-hover:text-[var(--white)] group-hover:scale-105"}
           `}
         >
